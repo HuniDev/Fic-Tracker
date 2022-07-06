@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
+import Header from './components/Header';
+import StoryTable from './components/StoryTable';
+import { Input, Button } from '@chakra-ui/react';
 
 function App() {
 	const [storyData, setStoryData] = useState(null);
@@ -43,8 +46,8 @@ function App() {
 		}).then(res => {
 			const data = res.data;
 			setStoryData([
-				{ author: data.author, desc: data.desc, title: data.title },
 				...storyData,
+				{ author: data.author, desc: data.desc, title: data.title },
 			]);
 			console.log(storyData);
 		});
@@ -52,26 +55,23 @@ function App() {
 
 	return (
 		<div className='App'>
-			<p> Enter story url </p>
+			<Header />
 			<form onSubmit={handleSubmit}>
-				<input
-					onChange={handleChange}
-					type='text'
-					name='urltext'
+				<Input
+					placeholder='Enter story URL'
 					value={urlData}
-				></input>
-				<button type='submit'>Submit</button>
+					onChange={handleChange}
+					maxW='md'
+					borderRadius='md'
+					mt='30px'
+					mb='30px'
+				/>
+				<Button bg='#e5989b' type='submit'>
+					+
+				</Button>
 			</form>
-			{storyData &&
-				storyData.map(story => {
-					return (
-						<div key={story.id}>
-							<p>Story Name: {story.title}</p>
-							<p>Author: {story.author}</p>
-							<p>Summary: {story.desc}</p>
-						</div>
-					);
-				})}
+
+			<StoryTable story={storyData} />
 		</div>
 	);
 }
