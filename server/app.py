@@ -1,14 +1,10 @@
-from gettext import find
 import os
 from urllib import response
 from flask import (
      Flask,
      request,
      jsonify,
-     redirect,
-     flash,
-     url_for,
-     current_app
+
 )
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -33,12 +29,16 @@ class Story(db.Model):
     title = db.Column(db.String(100), nullable=False)
     author = db.Column(db.String(100), nullable=False)
     desc = db.Column(db.String(100), nullable=False)
+    url = db.Column(db.String(100), nullable=False)
+    tags = db.Column(db.String(300), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
-    def __init__(self,title,author,desc):
+    def __init__(self,title,author,desc, url, tags):
         self.title = title
         self.author = author
         self.desc = desc
+        self.url = url
+        self.tags = tags
 
     def __repr__(self):
         return f'<Story {self.title}>'
@@ -47,7 +47,9 @@ def story_serializer(story):
     return{
          "title":story.title,
          "author":story.author,
-         "desc":story.desc
+         "desc":story.desc,
+         "url" : story.url,
+         "tags": story.tags
     }
  
     
@@ -68,6 +70,7 @@ def story_data():
             url = str(data, 'UTF-8')
             newurl = url.replace('"','')
             return newurl
+        story_url = format_url()
         source = requests.get(format_url()).text
         soup = BeautifulSoup(source, 'html.parser')
         def find_title():
@@ -88,20 +91,32 @@ def story_data():
             desc = ''
             for dis in data:
                 desc += dis.text
-            clean_str = desc.replace('\n','')
+            clean_str = desc.replace('\\n',',')
             return clean_str
         story_desc = find_desc()
+        def find_tags():
+            data = soup.findAll('a', attrs={'class': 'tag'})
+            mylist = []
+            for tag in data:
+             mylist.append(tag.text)
+            str_tags = ','.join(map(str, mylist))
+            return str_tags
+        story_tags = find_tags()
         try:
             title = find_title()
             author = find_auth()
             desc = find_desc()
-            story = Story(title,author,desc)
+            url = format_url()
+            tags = find_tags()
+            story = Story(title,author,desc,url, tags)
             db.session.add(story)
             db.session.commit()
             response_body = {
-                "title": story_title,
-                "author": story_auth,
-                "desc": story_desc
+             "title": story_title,
+             "author": story_auth,
+             "desc": story_desc,
+             "url": story_url,
+             "tags": story_tags
             }
             
             return response_body

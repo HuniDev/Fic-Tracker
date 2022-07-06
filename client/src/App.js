@@ -47,9 +47,15 @@ function App() {
 			const data = res.data;
 			setStoryData([
 				...storyData,
-				{ author: data.author, desc: data.desc, title: data.title },
+				{
+					author: data.author,
+					desc: data.desc,
+					title: data.title,
+					url: data.url,
+					tags: data.tags,
+				},
 			]);
-			console.log(storyData);
+			setUrlData('');
 		});
 	};
 
